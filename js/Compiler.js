@@ -67,13 +67,21 @@ Compiler.prototype = {
 
 // 指令集
 var Directive = {
-    _bind: function (node, vm, dir, exp, extra) {
+    _bind: function (node, vm, dir, exp) {
         var updateFn = this._updates[dir];
-        updateFn && updateFn(node, this._getVmValue(vm ,exp), extra);
+        updateFn && updateFn(node, this._getVmValue(vm ,exp));
+        new Watcher(vm, exp, function (value) {
+            updateFn && updateFn(node, value);
+        });
+    },
+    html: function (node, vm, exp) {
+        this._bind(node, vm, "html", exp);
+    },
+    text: function (node, vm, exp) {
+        this._bind(node, vm, "nodeText", exp);
     },
     textNode: function (node, vm, exp) {
-        var updateFn = this._updates.nodeText;
-        updateFn && updateFn(node, this._getVmValue(vm, exp));
+        this._bind(node, vm, "nodeText", exp);
     },
     model: function (node, vm, dir, exp) {
         this._bind(node, vm, dir, exp);
@@ -89,34 +97,38 @@ var Directive = {
     on: function (node, vm, dir, exp, extra) {
         var eventFn = vm.$options.methods && vm.$options.methods[exp];
         if (extra && eventFn) {
-            el.addEventListener(extra, eventFn.bind(vm), false);
+            node.addEventListener(extra, eventFn.bind(vm), false);
         }
     },
     _getVmValue: function (vm, exp) {
-        var data = vm._data;
+        var data = vm.$data;
         exp.split(".").forEach(function (k) {
             data = data[k];
         });
         return data;
     },
     _setVmValue: function (vm, exp, value) {
-        var data = vm._data;
-        exp.split(".").forEach(function (k, i) {
-            if(i < exp.length - 1){
+        var data = vm.$data,
+            keys = exp.split(".");
+        keys.forEach(function (k, i) {
+            if(i < keys.length - 1){
                 data = data[k];
             } else {
                 data[k] = value;
             }
-        })
+        });
     },
 
     // update 更新规则列表
     _updates: {
         nodeText: function (node, value) {
-            node.textContent = typeof value === 'undefined' ? '' : value.toString();
+            node.textContent = typeof value === 'undefined' ? '' : value;
         },
         model: function (node, value) {
-            node.value = typeof value === "undefined" ? "" : value.toString();
+            node.value = typeof value === "undefined" ? "" : value;
+        },
+        html: function (node, value) {
+            node.innerHTML = typeof value === "undefined" ? "" : value;
         }
     }
 };

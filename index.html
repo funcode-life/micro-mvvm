@@ -18,6 +18,9 @@
         <p>
             <span>{{someStr}}</span>&nbsp;<span>{{others.otherStr}}</span>
         </p>
+        <p v-html="html"></p>
+        <p v-text="text"></p>
+        <input type="button" v-on:click="console" value="Reset">
     </div>
     <script>
         var vm = new MVVM({
@@ -26,8 +29,20 @@
                 someStr: "Hello",
                 others: {
                     otherStr: "World"
+                },
+                html: "<span style='color: red'>HTML</span>",
+                text: "<span style='color: red'>HTML</span>"
+            },
+            methods: {
+                console: function () {
+                    this.someStr = "Hello";
+                    this.others.otherStr = "World";
                 }
             }
+        });
+
+        vm.$watch("someStr", function (value) {
+            console.log(this);
         })
     </script>
 </body>
