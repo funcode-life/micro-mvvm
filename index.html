@@ -21,6 +21,9 @@
         <p v-html="html"></p>
         <p v-text="text"></p>
         <input type="button" v-on:click="console" value="Reset">
+        <input type="button" value="-" v-on:click="subCount">
+        <span>{{count}}</span>
+        <input type="button" value="+" v-on:click="addCount">
     </div>
     <script>
         var vm = new MVVM({
@@ -31,12 +34,19 @@
                     otherStr: "World"
                 },
                 html: "<span style='color: red'>HTML</span>",
-                text: "<span style='color: red'>HTML</span>"
+                text: "<span style='color: red'>HTML</span>",
+                count: 0,
             },
             methods: {
                 console: function () {
                     this.someStr = "Hello";
                     this.others.otherStr = "World";
+                },
+                addCount: function(){
+                	this.count += 1;
+                },
+                subCount: function(){
+                	this.count += -1;
                 }
             }
         });
