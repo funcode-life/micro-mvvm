@@ -13,17 +13,28 @@
 </head>
 <body>
     <div id="app">
+    	<h2>标准数据绑定</h2>
         <input type="text" v-model="someStr">
         <input type="text" v-model="others.otherStr">
         <p>
             <span>{{someStr}}</span>&nbsp;<span>{{others.otherStr}}</span>
         </p>
+
+        <h2>html和text指令</h2>
+        <textarea v-model="html" cols="30" rows="10"></textarea>
         <p v-html="html"></p>
-        <p v-text="text"></p>
+        <p v-text="html"></p>
+        
+        <h2>数字响应</h2>
         <input type="button" v-on:click="console" value="Reset">
         <input type="button" value="-" v-on:click="subCount">
         <span>{{count}}</span>
         <input type="button" value="+" v-on:click="addCount">
+
+        <h2>数组响应</h2>
+        <p>{{array.toString()}}</p>
+        <input type="button" value='添加' v-on:click='addArray'>
+        <input type="button" value='移除' v-on:click='subArray'>
     </div>
     <script>
         var vm = new MVVM({
@@ -34,8 +45,8 @@
                     otherStr: "World"
                 },
                 html: "<span style='color: red'>HTML</span>",
-                text: "<span style='color: red'>HTML</span>",
                 count: 0,
+                array: [1,2,3]
             },
             methods: {
                 console: function () {
@@ -47,7 +58,20 @@
                 },
                 subCount: function(){
                 	this.count += -1;
+                },
+                addArray: function() {
+                	this.array.push(~~(Math.random() * 100));
+                },
+                subArray: function() {
+                	var index = ~~(Math.random() * this.array.length)
+                	this.array.splice(index, 1);
                 }
+            },
+            watch: {
+            	count: function(value, oldValue) {
+            		console.log(value);
+            		console.log(oldValue);
+            	}
             }
         });
 

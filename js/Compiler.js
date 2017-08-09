@@ -20,14 +20,14 @@ Compiler.prototype = {
     },
     compile: function (el) {
         [].slice.apply(el.childNodes).forEach(function (node) {
-            var nodeContent = node.textContent.trim(),
-                reg = /\{\{(.*?)\}\}/,
-                isTextNode = nodeContent.match(reg);
-
-            if (this.isElementNode(node)) { // 当子节点为元素节点
+            // 此处处理逻辑
+            // 文本节点进行数据绑定操作
+            // 如果是元素节点，进行指令解析操作
+            // 当子节点为元素节点
+            if (this.isElementNode(node)) {
                 this._compileElementNode(node);
-            } else if (this.isTextNode(node) && isTextNode) { // 当子节点为文本节点
-                this._compileTextNode(node, isTextNode[1]);
+            } else if (this.isTextNode(node)) { // 当子节点为文本节点
+                this._compileTextNode(node);
             }
 
             // 当仍然存在子节点时，继续迭代
@@ -46,15 +46,20 @@ Compiler.prototype = {
                     extra = isDirective[2],
                     exp = attr.value;
 
-                Directive[dir] && Directive[dir](node, this._vm, dir, exp, extra);
+                Directive[dir] && Directive[dir](node, this._vm, exp, dir, extra);
 
                 // 移除指令属性
                 node.removeAttribute(attrName);
             }
         }, this);
     },
-    _compileTextNode: function (node, exp) {
-        Directive.textNode(node, this._vm, exp);
+    _compileTextNode: function (node) {
+        var nodeContent = node.textContent.trim(),
+            reg = /\{\{(.*?)\}\}/,
+            isTextNode = nodeContent.match(reg);
+        if (isTextNode) {
+            Directive.textNode(node, this._vm, isTextNode[1]);
+        }
     },
     isElementNode: function (el) {
         return el.nodeType === 1;
@@ -67,24 +72,24 @@ Compiler.prototype = {
 
 // 指令集
 var Directive = {
-    _bind: function (node, vm, dir, exp) {
+    _bind: function (node, vm, exp, dir) {
         var updateFn = this._updates[dir];
-        updateFn && updateFn(node, this._getVmValue(vm ,exp));
+        updateFn && updateFn(node, this._getVmValue(vm, exp));
         new Watcher(vm, exp, function (value) {
             updateFn && updateFn(node, value);
         });
     },
     html: function (node, vm, exp) {
-        this._bind(node, vm, "html", exp);
+        this._bind(node, vm, exp, "innerHtml");
     },
     text: function (node, vm, exp) {
-        this._bind(node, vm, "nodeText", exp);
+        this._bind(node, vm, exp, "innerText");
     },
     textNode: function (node, vm, exp) {
-        this._bind(node, vm, "nodeText", exp);
+        this._bind(node, vm, exp, "nodeText");
     },
-    model: function (node, vm, dir, exp) {
-        this._bind(node, vm, dir, exp);
+    model: function (node, vm, exp, dir) {
+        this._bind(node, vm, exp, dir);
 
         var oldVal = this._getVmValue(vm, exp),
             self = this;
@@ -94,7 +99,7 @@ var Directive = {
             self._setVmValue(vm, exp, value);
         })
     },
-    on: function (node, vm, dir, exp, extra) {
+    on: function (node, vm, exp, dir, extra) {
         var eventFn = vm.$options.methods && vm.$options.methods[exp];
         if (extra && eventFn) {
             node.addEventListener(extra, eventFn.bind(vm), false);
@@ -125,10 +130,14 @@ var Directive = {
             node.textContent = typeof value === 'undefined' ? '' : value;
         },
         model: function (node, value) {
+            if (value === node.value) return false;
             node.value = typeof value === "undefined" ? "" : value;
         },
-        html: function (node, value) {
+        innerHtml: function (node, value) {
             node.innerHTML = typeof value === "undefined" ? "" : value;
+        },
+        innerText: function (node, value) {
+            node.innerText = typeof value === 'undefined' ? '' : value;
         }
     }
 };

@@ -12,6 +12,12 @@ function MVVM(options) {
 
     // 数据代理
     this.proxyData();
+    // 添加 watch
+    if (this.$options.watch && typeof this.$options.watch) {
+        Object.keys(this.$options.watch).forEach(function(key) {
+            this.$watch(key, this.$options.watch[key]);
+        }, this)
+    }
 }
 
 MVVM.prototype = {

@@ -10,10 +10,11 @@ function Observer(data) {
 Observer.prototype = {
     covertData: function () {
         Object.keys(this._data).forEach(function (key) {
-            this.defineReactive(key, this._data[key]);
+            this.defineReactive(key);
         }, this);
     },
-    defineReactive: function (key, value) {
+    defineReactive: function (key) {
+        var value = this._data[key]
         // 监听的是数据，依赖应该直接和数据关联，所以在这里生成依赖处理对象
         var dep = new Dep();
 
@@ -47,13 +48,13 @@ Dep.prototype = {
         // 调用 Watch 方法，并将 Dep 实例传递过去
         Dep.target.addDep(this);
     },
-    addDep: function (dep) {
-        this.deps.push(dep);
+    addDep: function (watch) {
+        this.deps.push(watch);
     },
     notify: function () {
         // 当数据更新时，依次调用 watch 的 update 方法
-        this.deps.forEach(function (dep) {
-            dep.update();
+        this.deps.forEach(function (watch) {
+            watch.update();
         })
     }
 };
