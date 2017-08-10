@@ -106,17 +106,24 @@ var Directive = {
         }
     },
     _getVmValue: function (vm, exp) {
-        var data = vm.$data;
-        exp.split(".").forEach(function (k) {
-            data = data[k];
+    	var val = vm.$data;
+        exp.split(".").forEach(function (key) {
+            if (typeof val[key] === 'function') {
+                val = val[key]()
+            } else if (key.lastIndexOf('()') !== -1) {
+                val = eval('val.' + key);
+            } else {
+                val = val[key];
+            }
         });
-        return data;
+        return val;
     },
     _setVmValue: function (vm, exp, value) {
         var data = vm.$data,
-            keys = exp.split(".");
+            keys = exp.split("."),
+            max = keys.length - 1;
         keys.forEach(function (k, i) {
-            if(i < keys.length - 1){
+            if(i < max && typeof data[k] !== 'function' && k.lastIndexOf('()') === -1){
                 data = data[k];
             } else {
                 data[k] = value;

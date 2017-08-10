@@ -38,7 +38,6 @@ Watcher.prototype = {
                 val = val[key];
             }
         });
-        console.log(val);
         return val;
     }
 };
